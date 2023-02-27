@@ -178,6 +178,24 @@ DDR_TYPE = DDR4
 DDR_SIZE = 1GB_1PCS
 SWIZZLE  = T3BCUD2
 DEVICE_TYPE = 1
+else ifeq ("$(BOARD)", "VSOM_G2L_1GB")
+#--------------------------------------
+# Somlabs VisionSOM-x2L - RZ/G2L - 1GB (Micron)
+#--------------------------------------
+FILENAME_ADD = _VSOM_G2L_1GB
+DEVICE   = RZG2L
+DDR_TYPE = DDR4
+DDR_SIZE = 1GB_1PCS
+SWIZZLE  = T1BC
+else ifeq ("$(BOARD)", "VSOM_V2L_1GB")
+#--------------------------------------
+# Somlabs VisionSOM-x2L - RZ/V2L - 1GB (Micron)
+#--------------------------------------
+FILENAME_ADD = _VSOM_V2L_1GB
+DEVICE   = RZV2L
+DDR_TYPE = DDR4
+DDR_SIZE = 1GB_1PCS
+SWIZZLE  = T1BC
 endif
 
 # Select SERIAL_FLASH("ENABLE"or"DISABLE" )
@@ -209,10 +227,10 @@ DDR_TYPE = INTERNAL
 endif
 
 #CPU
-CPU     = 
+CPU     =
 AArch   = 64
-THUMB   = 
-AS_NEON = 
+THUMB   =
+AS_NEON =
 CC_NEON = -mgeneral-regs-only
 ALIGN   = -mstrict-align
 AArch32_64  = AArch64
