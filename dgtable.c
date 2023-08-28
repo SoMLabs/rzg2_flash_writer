@@ -30,9 +30,11 @@ const com_menu MonCom[COMMAND_UNIT] = {
 	"XINFO_BP_S"		, dgG2InfoSpiflash0_BP_S	,  0	,
 #endif /* SERIAL_FLASH == 1 */
 #if EMMC == 1
+#if EMMC_DISP == 1
 	"EM_DCID"		, &dg_emmc_disp_cid		,  0	,
 	"EM_DCSD"		, &dg_emmc_disp_csd		,  0	,
 	"EM_DECSD"		, &dg_emmc_disp_ext_csd		,  0	,
+#endif
 	"EM_SECSD"		, &dg_emmc_set_ext_csd		,  0	,
 	"EM_W"			, &dg_emmc_write_mot		,  0	,
 	"EM_WB"			, &dg_emmc_write_bin		,  0	,
@@ -41,10 +43,11 @@ const com_menu MonCom[COMMAND_UNIT] = {
 	"SUP"			, dgScifSpeedUp			,  0	,
 	"SUD"			, dgScifSpeedDown		,  0	,
 	"RESET"			, dgReset			,  0	,
-#if INTERNAL_MEMORY_ONLY == 0
+#if INTERNAL_MEMORY_ONLY == 0 && MEM_TEST_CMD == 1
 	"DDRCK"			, dgDdrTest			,  0	,
 	"RAMCK"			, dgRamTest			,  0	,
 #endif /* INTERNAL_MEMORY_ONLY == 0 */
+#if MEM_CMD == 1
 	"D"			, dgDump			,  0	,
 	"DM"			, dgDumpMode			,  0	,
 	"M"			, dgMemEdit_byte		,  0	,
@@ -54,6 +57,7 @@ const com_menu MonCom[COMMAND_UNIT] = {
 	"F"			, dgFill_byte			,  0	,
 	"FL"			, dgFill_long			,  0	,
 	"FX"			, dgFill_longlong		,  0	,
+#endif
 	TBL_END			, 0				,  0
 };
 

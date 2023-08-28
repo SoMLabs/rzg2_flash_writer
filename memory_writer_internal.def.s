@@ -34,6 +34,7 @@ SECTIONS
 #endif
 
 	.text : {
+		KEEP(*(BOOT_MON))
 		__RO_START__ = .;
 		*(.text*)
 		*(.rodata*)

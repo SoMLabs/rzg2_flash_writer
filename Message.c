@@ -39,9 +39,11 @@ const char *const AllHelpMess[ALL_HELP_MESS_LINE] = {
 #endif /* SERIAL_FLASH == 1 */
 #if EMMC == 1
 				"        eMMC write command",
+#if EMMC_DISP == 1
 				" EM_DCID        display register CID",
 				" EM_DCSD        display register CSD",
 				" EM_DECSD       display register EXT_CSD",
+#endif /* #if EMMC_DISP == 1 */
 				" EM_SECSD       change register EXT_CSD byte",
 				" EM_W           write program to eMMC",
 				" EM_WB          write program to eMMC (Binary)",
@@ -52,6 +54,7 @@ const char *const AllHelpMess[ALL_HELP_MESS_LINE] = {
 				" SUD            Scif speed DOWN (Change to speed down baud rate setting)",
 				" RESET          Perform RESET of the CPU",
 				" H              help",
+#if MEM_CMD == 1
 				" D  {sadr {eadr}}          memory dump  (DM sets dump size)",
 				" DM {B|W|L|X}              set&disp dump mode",
 				" M  [adr]                  set memory(BYTE)",
@@ -61,5 +64,6 @@ const char *const AllHelpMess[ALL_HELP_MESS_LINE] = {
 				" F  [sadr] [eadr] [data]   fill memory",
 				" FL [sadr] [eadr] [data]   fill memory(LONG)",
 				" FX [sadr] [eadr] [data]   fill memory(LONG LONG)",
+#endif /* MEM_CMD == 1 */
 				MESSAGE_END,
 };

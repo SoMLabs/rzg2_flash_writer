@@ -384,7 +384,7 @@ static void warningChgProtectIndex(void);
 static void dispField( uint32_t start, uint32_t end );
 static void dispOffset( int8_t cnt );
 
-
+#ifdef EMMC_DISP
 /****************************************************************
 	MODULE			: dg_emmc_disp_cid 		*
 	FUNCTION		: Display CID			*
@@ -459,6 +459,7 @@ void	dg_emmc_disp_ext_csd(void)
 	return;
 }
 
+#endif /* EMMC_DISP */
 
 /****************************************************************
 	MODULE			: dg_emmc_set_ext_csd 		*
@@ -710,6 +711,7 @@ static void disp_csd(void)
 	PutStr("", 1);
 }
 
+#ifdef EMMC_DISP
 /****************************************************************
 	MODULE			: disp_ext_csd	 		*
 	FUNCTION		: Display EXT_CSD		*
@@ -748,7 +750,7 @@ static void disp_ext_csd(void)
 		PutStr("  ", 0);
 		for (j = i; j < (i+20); j++)
 		{
-			if (j == (i+10)) 
+			if (j == (i+10))
 			{
 				PutStr("| ", 0);
 			}
@@ -791,6 +793,8 @@ static void disp_ext_csd(void)
 	}
 	PutStr("", 1);
 }
+
+#endif /* EMMC_DISP */
 
 /****************************************************************
 	MODULE			: InputExtCsdParam 		*

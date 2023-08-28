@@ -208,6 +208,21 @@ ifeq ("$(EMMC)", "")
 EMMC = ENABLE
 endif
 
+# Select EMMC_DISP("ENABLE"or"DISABLE" )
+ifeq ("$(EMMC_DISP)", "")
+EMMC_DISP = ENABLE
+endif
+
+# Select MEM_CMD("ENABLE"or"DISABLE" )
+ifeq ("$(MEM_CMD)", "")
+MEM_CMD = ENABLE
+endif
+
+# Select MEM_TEST_CMD("ENABLE"or"DISABLE" )
+ifeq ("$(MEM_TEST_CMD)", "")
+MEM_TEST_CMD = ENABLE
+endif
+
 # Select QSPI IO Voltage("1_8V"or"3_3V" )
 ifeq ("$(QSPI_IOV)", "")
 QSPI_IOV=1_8V
@@ -239,7 +254,7 @@ OUTPUT_DIR  = AArch64_output
 OBJECT_DIR  = AArch64_obj
 CROSS_COMPILE ?= aarch64-elf-
 
-CFLAGS += -O0 -fno-stack-protector -fno-exceptions -fno-unwind-tables -fno-asynchronous-unwind-tables
+CFLAGS += -Os -fno-stack-protector -fno-exceptions -fno-unwind-tables -fno-asynchronous-unwind-tables -ffunction-sections
 BOOT_DEF    = Writer
 FILE_NAME   = $(OUTPUT_DIR)/Flash_Writer_SCIF$(FILENAME_ADD)_$(DDR_TYPE)_$(DDR_SIZE)
 
@@ -339,6 +354,27 @@ ifeq ("$(EMMC)", "DISABLE")
 	CFLAGS += -DEMMC=0
 endif
 
+ifeq ("$(EMMC_DISP)", "ENABLE")
+	CFLAGS += -DEMMC_DISP=1
+endif
+ifeq ("$(EMMC_DISP)", "DISABLE")
+	CFLAGS += -DEMMC_DISP=0
+endif
+
+ifeq ("$(MEM_CMD)", "ENABLE")
+	CFLAGS += -DMEM_CMD=1
+endif
+ifeq ("$(MEM_CMD)", "DISABLE")
+	CFLAGS += -DMEM_CMD=0
+endif
+
+ifeq ("$(MEM_TEST_CMD)", "ENABLE")
+	CFLAGS += -DMEM_TEST_CMD=1
+endif
+ifeq ("$(MEM_TEST_CMD)", "DISABLE")
+	CFLAGS += -DMEM_TEST_CMD=0
+endif
+
 ifeq ("$(QSPI_IOV)", "1_8V")
 	CFLAGS += -DQSPI_IO_1_8V=1
 endif
@@ -394,7 +430,6 @@ SRC_FILE :=				\
 	common.c			\
 	dgtable.c			\
 	dgmodul1.c			\
-	memory_cmd.c			\
 	Message.c			\
 	ramckmdl.c			\
 	cpudrv.c			\
@@ -404,11 +439,22 @@ SRC_FILE :=				\
 	sys/pfc.c			\
 	sys/tzc_400.c
 
+
+ifeq ("$(MEM_CMD)", "ENABLE")
+SRC_FILE +=				\
+	memory_cmd.c
+endif
+
 ifeq ("$(INTERNAL_MEMORY_ONLY)", "DISABLE")
 SRC_FILE +=				\
-	ddrcheck.c			\
 	ddr/common/ddr.c
 endif
+
+ifeq ("$(MEM_TEST_CMD)", "ENABLE")
+SRC_FILE +=				\
+	ddrcheck.c
+endif
+
 ifeq ("$(DEVICE)", "RZV2L")
 SRC_FILE +=				\
 	ddr/v2l/ddr_v2l.c
@@ -505,6 +551,7 @@ $(OBJECT_DIR)/%.def:%.def.s
 #------------------------------------------
 $(OUTPUT_FILE): $(OBJ_FILE_BOOT) $(OBJ_FILE) $(MEMORY_DEF)
 	$(LD) $(OBJ_FILE_BOOT) $(OBJ_FILE) 	\
+	--gc-sections 				\
 	-T '$(MEMORY_DEF)'			\
 	-o '$(OUTPUT_FILE)'			\
 	-Map '$(FILE_NAME).map' 		\
