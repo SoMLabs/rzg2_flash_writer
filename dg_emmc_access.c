@@ -17,6 +17,8 @@
 #include "ramckmdl.h"
 #include "dgmodul1.h"
 #include "devdrv.h"
+#include "cpudrv.h"
+#include "ymodem.h"
 
 #define	SIZE2SECTOR(x)			( (x) >> 9 )	/* 512Byte		*/
 
@@ -247,7 +249,7 @@ void	dg_emmc_write(EMMC_WRITE_COMMAND wc)
 	}
 
 //Input address(mmc sector)
-	chkInput = InputEmmcSector( partitionArea, sectorData.maxSectorCount[partitionArea], 
+	chkInput = InputEmmcSector( partitionArea, sectorData.maxSectorCount[partitionArea],
 								&sectorStartAddress, &sectorSize, EMMC_INPUT_TYPE_WRITE );
 	if (1 != chkInput)
 	{
@@ -368,6 +370,94 @@ void	dg_emmc_write(EMMC_WRITE_COMMAND wc)
 	PutStr(endMessage[wc], 1);
 }
 
+
+/****************************************************************
+	MODULE			: dg_emmc_write			*
+	FUNCTION		: Write Memory to eMMC		*
+	COMMAND			: EMMC_W			*
+	INPUT PARAMETER		: EMMC_W			*
+*****************************************************************/
+static void	dg_emmc_write_ymodem(EMMC_PARTITION partitionArea)
+{
+	EMMC_ERROR_CODE result;
+	EMMC_SECTOR	sectorData;
+	uint32_t	flags = 0x00000001;
+
+	uint8_t* loadBuffer = (uint8_t*)EMMC_WORK_DRAM_SADD;
+	size_t maxSize;
+	size_t fileSize;
+	uint32_t sectorCount;
+
+	if(partitionArea == EMMC_PARTITION_USER_AREA) {
+		maxSize = 512;
+	} else {
+		maxSize = 16;
+	}
+
+	maxSize *= 1024 * 1024;		// in megabytes
+
+	// init emmc
+	result = dg_emmc_check_init();
+	if (EMMC_SUCCESS != result)
+	{
+		PutStr("eMMC Init ERROR!",1);
+		return;
+	}
+
+	FillData32Bit((uint32_t *)loadBuffer, (uint32_t *)&loadBuffer[maxSize],0x00000000);
+
+	PutStr("Please send a file (YMODEM)!", 1);
+
+	fileSize = ymodem_receive_file(loadBuffer, maxSize);
+	StartTMU0(250);	// delay 250ms
+	PutStr(" ", 1);
+	PutStr("Received file size: ", 0);
+	{
+		uint8_t buff[16];
+		uint32_t chrcount = 0;
+		Hex2DecAscii(fileSize, buff, &chrcount);
+		PutStr(buff, 0);
+	}
+	PutStr(" bytes", 1);
+
+	sectorCount = (fileSize + EMMC_BLOCK_LENGTH -1)/EMMC_BLOCK_LENGTH;
+
+	result = emmc_select_partition( partitionArea );
+	if (result != EMMC_SUCCESS)
+	{
+		PutStr("EM_W Partition select FAIL",1);
+		return;
+	}
+
+	SETR_32( SD_SIZE, EMMC_BLOCK_LENGTH );
+
+
+	result = emmc_write_sector( (uint32_t*)loadBuffer, 0, sectorCount, flags);
+
+	if (result != EMMC_SUCCESS)
+	{
+		PutStr("EM_W ERR",1);
+		return;
+	}
+	PutStr("EM_WYB done", 1);
+}
+
+void dg_emmc_write_ymodem_boot1(void)
+{
+	dg_emmc_write_ymodem(EMMC_PARTITION_BOOT_1);
+}
+
+void dg_emmc_write_ymodem_boot2(void)
+{
+	dg_emmc_write_ymodem(EMMC_PARTITION_BOOT_2);
+}
+
+void dg_emmc_write_ymodem_user(void)
+{
+	dg_emmc_write_ymodem(EMMC_PARTITION_USER_AREA);
+}
+
+
 /****************************************************************
 	MODULE			: dg_emmc_write_bin		*
 	FUNCTION		: Write Memory to eMMC (Binary)	*
@@ -409,6 +499,18 @@ static void dg_emmc_write_bin_serial(uint32_t* workStartAdd, uint32_t fileSize)
 		*((uint8_t *)ptr) = byteData;
 		ptr++;
 	}
+}
+
+
+/************************************************************************
+	MODULE			: dg_emmc_write_bin_ymodem		*
+	FUNCTION		: Write Memory to eMMC (Binary(YMODEM))	*
+	COMMAND			: EMMC_WY				*
+	INPUT PARAMETER		: EMMC_WY				*
+*************************************************************************/
+static size_t dg_emmc_write_bin_ymodem(void* workStartAdd, uint32_t maxSize)
+{
+	return ymodem_receive_file(workStartAdd, maxSize);
 }
 
 /****************************************************************

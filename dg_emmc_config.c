@@ -575,6 +575,123 @@ void	dg_emmc_set_ext_csd(void)
 	return;
 }
 
+/****************************************************************
+	MODULE			: dg_emmc_set_ext_csd_value 		*
+	FUNCTION		: Set EXT_CID			*
+	COMMAND			: EMMC_DECSD			*
+	INPUT PARAMETER		: EMMC_DECSD			*
+*****************************************************************/
+static void	dg_emmc_set_ext_csd_value(uint32_t index, uint32_t value)
+{
+	EMMC_ERROR_CODE result;
+	uint32_t chkInput;
+	uint32_t arg;
+	int8_t buf[16];
+	int32_t chCnt;
+#ifdef EXTCSD_PROTECT
+	uint32_t chkProtect;
+#endif /* EXTCSD_PROTECT */
+
+	result = dg_emmc_check_init();
+	if (EMMC_SUCCESS != result)
+	{
+		PutStr("eMMC Init ERROR!", 1);
+		return;
+	}
+
+	// emmc_set_ext_csd
+	arg = ( EXTCSD_ACCESS_BYTE | ( EMMC_EXT_CSD_ERASE_GROUP_DEF << 16 ) | ( 1 << 8 ) );
+	result = emmc_set_ext_csd(arg);
+	if (EMMC_SUCCESS != result)
+	{
+		PutStr(" EM_SECSD ERASE_GROUP_DEF CHG ERR!", 1);
+		return;
+	}
+
+	/* CMD8 (EXT_CSD) */
+	emmc_make_trans_cmd(CMD8_SEND_EXT_CSD, 0x00000000, (uint32_t *)(&mmc_drv_obj.ext_csd_data[0]), EMMC_MAX_EXT_CSD_LENGTH, HAL_MEMCARD_READ, HAL_MEMCARD_NOT_DMA);
+	result = emmc_exec_cmd(EMMC_R1_ERROR_MASK, mmc_drv_obj.response);
+	if (result != EMMC_SUCCESS)
+	{
+		PutStr("EM_SECSD CMD8 ERR!", 1);
+		return;
+	}
+
+#ifdef EMMC_DEBUG
+	PutStr("Index = ", 0);
+	Hex2DecAscii((int32_t)index,buf,&chCnt);
+	PutStr(buf, 1);
+	PutStr("Value = 0x", 0);
+	Hex2Ascii((int32_t)value,buf,&chCnt);
+	PutStr(buf, 1);
+#endif /* EMMC_DEBUG */
+
+#ifdef EXTCSD_PROTECT
+	chkProtect = emmcChkExtCsdProtectIndex( index );
+	if (0 != chkProtect)
+	{
+		/* Warning */
+		warningChgProtectIndex();
+		if (WaitKeyIn_YorN())
+		{
+			DelStr(34);
+			PutStr(" EM_SECSD CANCEL!", 1);
+			return;
+		}
+		DelStr(34);
+		warningChgProtectIndex();
+		if (WaitKeyIn_YorN())
+		{
+			DelStr(34);
+			PutStr(" EM_SECSD CANCEL!", 1);
+			return;
+		}
+		DelStr(34);
+	}
+#endif /* EXTCSD_PROTECT */
+
+	// emmc_set_ext_csd
+	arg = ( EXTCSD_ACCESS_BYTE | ( index << 16 ) | ( value << 8 ) );
+	result = emmc_set_ext_csd(arg);
+	if (EMMC_SUCCESS != result)
+	{
+		PutStr(" EM_SECSD ERR!", 1);
+		return;
+	}
+
+	/* CMD8 (EXT_CSD) */
+	emmc_make_trans_cmd(CMD8_SEND_EXT_CSD, 0x00000000, (uint32_t *)(&mmc_drv_obj.ext_csd_data[0]), EMMC_MAX_EXT_CSD_LENGTH, HAL_MEMCARD_READ, HAL_MEMCARD_NOT_DMA);
+	result = emmc_exec_cmd(EMMC_R1_ERROR_MASK, mmc_drv_obj.response);
+	if (result != EMMC_SUCCESS)
+	{
+		PutStr("EM_SECSD CMD8 ERR!", 1);
+		return;
+	}
+
+	// Disp Change After Values
+	PutStr("  EXT_CSD[", 0);
+	Hex2Ascii(index,buf,&chCnt);
+	PutStr(&buf[6], 0);
+	PutStr("] = 0x", 0);
+	Hex2Ascii((int32_t)mmc_drv_obj.ext_csd_data[index],buf,&chCnt);
+	PutStr(&buf[6], 1);
+
+	return;
+}
+
+void dg_emmc_set_emmc_boot_config(void)
+{
+/*
+ *	#### eMMC Boot Settings
+ *
+ *	Please note that for eMMC booting, the following EXT_CSD registers need to be modified:
+ *	- EXT_CSD[**B1**] = **0x02**
+ *	- EXT_CSD[**B3**] = **0x08**
+ */
+	dg_emmc_set_ext_csd_value(0xB1, 0x02);
+	dg_emmc_set_ext_csd_value(0xB3, 0x08);
+	PutStr("EM_BCFG done", 1);
+}
 
 /****************************************************************
 	MODULE			: disp_cid		 	*
@@ -586,7 +703,7 @@ static void disp_cid(void)
 {
 	int8_t buf[16];
 	uint32_t value;
-	uint32_t loop;	
+	uint32_t loop;
 	uint32_t dispCnt;
 	uint32_t top;
 	uint32_t end;

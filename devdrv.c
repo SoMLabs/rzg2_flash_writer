@@ -24,8 +24,12 @@ int32_t PutChar(char outChar)
 
 int32_t GetChar(char *inChar)
 {
-	GetCharSCIF0(inChar);
-	return(0);
+	return GetCharSCIF0(inChar);
+}
+
+int32_t GetCharTimeout(char *inChar, uint32_t timeout_ms)
+{
+	return GetCharSCIF0Timeout(inChar, timeout_ms);
 }
 
 int32_t WaitPutCharSendEnd(void)

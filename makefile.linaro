@@ -430,6 +430,7 @@ SRC_FILE :=				\
 	common.c			\
 	dgtable.c			\
 	dgmodul1.c			\
+	ymodem.c			\
 	Message.c			\
 	ramckmdl.c			\
 	cpudrv.c			\

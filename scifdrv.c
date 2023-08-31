@@ -12,6 +12,7 @@
 #include "cpg_regs.h"
 #include "pfc_regs.h"
 #include "devdrv.h"
+#include "cpudrv.h"
 
 /************************************************************************/
 /*									*/
@@ -24,6 +25,36 @@ int32_t PutCharSCIF0(char outChar)
 	*((volatile unsigned char*)SCIF0_FTDR) = outChar;
 	*((volatile uint16_t*)SCIF0_FSR) &= ~0x60U;	/* TEND,TDFE clear */
 	return(0);
+}
+
+int32_t GetCharSCIF0Timeout(char *inChar, uint32_t timeout_ms)
+{
+	int32_t ret = 0;
+	Timer_Start();
+	do
+	{
+		if (0x91U & *((volatile uint16_t *)SCIF0_FSR))
+		{
+			*((volatile uint16_t *)SCIF0_FSR) &= ~0x91U;
+		}
+		if (0x01U & *((volatile uint16_t *)SCIF0_LSR))
+		{
+			PutStr("ORER", 1);
+			*((volatile uint16_t *)SCIF0_LSR) &= ~0x01U;
+		}
+		if(Timer_GetValue() > (timeout_ms * 1000)) {
+			ret = -1;
+			break;
+		}
+	} while (!(0x02U & *((volatile uint16_t *)SCIF0_FSR)));
+
+	if (0x02U & *((volatile uint16_t *)SCIF0_FSR)) {
+		*inChar = *((volatile unsigned char*)SCIF0_FRDR);
+		*((volatile uint16_t*)SCIF0_FSR) &= ~0x02U;
+	}
+
+	Timer_Stop();
+	return ret;
 }
 
 int32_t GetCharSCIF0(char *inChar)

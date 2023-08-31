@@ -11,6 +11,7 @@ extern void	dg_emmc_disp_cid(void);
 extern void	dg_emmc_disp_csd(void);
 extern void	dg_emmc_disp_ext_csd(void);
 extern void	dg_emmc_set_ext_csd(void);
+extern void dg_emmc_set_emmc_boot_config(void);
 
 extern void dg_init_emmc(void);
 extern unsigned long dg_emmc_check_init(void);
@@ -19,5 +20,8 @@ extern void	dg_emmc_write_bin(void);
 extern void	dg_emmc_erase(void);
 extern void	InitMmcDrv(void);
 
-#endif /* __DG_EMMC_H__ */
+extern void dg_emmc_write_ymodem_boot1(void);
+extern void dg_emmc_write_ymodem_boot2(void);
+extern void dg_emmc_write_ymodem_user(void);
 
+#endif /* __DG_EMMC_H__ */

@@ -53,6 +53,26 @@ void udelay(uint32_t count_us)
 	StartTMU0usec(count_us);
 }
 
+void Timer_Start(void)
+{
+	volatile uint32_t dataL;
+
+	PowerOnTmu0();
+
+	*((volatile uint8_t*)OSTM0CTL)= 0x02U;		/* Free Running Mode */
+	*((volatile uint8_t*)OSTM0TS) = 0x01U;		/* TMU0 Start */
+}
+
+uint32_t Timer_GetValue(void)
+{
+	return (*((volatile uint32_t*)OSTM0CNT) * 100);
+}
+
+void Timer_Stop(void)
+{
+	*((volatile uint8_t*)OSTM0TT) = 0x01U;		/* TMU0 Stop */
+}
+
 void PowerOnTmu0(void)
 {
 	uint32_t dataL;
